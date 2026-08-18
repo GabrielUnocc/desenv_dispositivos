@@ -1,25 +1,101 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'core/constants/app_colors.dart';
 import 'core/constants/app_strings.dart';
 import 'core/di/injection.dart';
+import 'core/routes/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_controller.dart';
+import 'features/tasks/domain/entities/category.dart';
+import 'features/tasks/domain/repositories/category_repository.dart';
+import 'features/tasks/domain/usecases/create_category.dart';
+import 'features/tasks/domain/usecases/create_task.dart';
+import 'features/tasks/domain/usecases/delete_category.dart';
+import 'features/tasks/domain/usecases/delete_task.dart';
+import 'features/tasks/domain/usecases/get_categories.dart';
+import 'features/tasks/domain/usecases/get_task_by_id.dart';
+import 'features/tasks/domain/usecases/get_tasks.dart';
+import 'features/tasks/domain/usecases/toggle_task_completed.dart';
+import 'features/tasks/domain/usecases/toggle_task_favorite.dart';
+import 'features/tasks/domain/usecases/update_category.dart';
+import 'features/tasks/domain/usecases/update_task.dart';
+import 'features/tasks/presentation/controllers/category_controller.dart';
+import 'features/tasks/presentation/controllers/task_controller.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await configureDependencies();
 
+  // Popula o banco com as categorias padrão na primeira execução.
+  await _seedDefaultCategories();
+
   final themeController = ThemeController();
   await themeController.load();
 
   runApp(
-    ChangeNotifierProvider.value(
-      value: themeController,
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: themeController),
+        ChangeNotifierProvider(
+          create: (_) => TaskController(
+            getTasks: getIt<GetTasks>(),
+            createTask: getIt<CreateTask>(),
+            updateTask: getIt<UpdateTask>(),
+            deleteTask: getIt<DeleteTask>(),
+            getTaskById: getIt<GetTaskById>(),
+            toggleCompleted: getIt<ToggleTaskCompleted>(),
+            toggleFavorite: getIt<ToggleTaskFavorite>(),
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => CategoryController(
+            getCategories: getIt<GetCategories>(),
+            createCategory: getIt<CreateCategory>(),
+            updateCategory: getIt<UpdateCategory>(),
+            deleteCategory: getIt<DeleteCategory>(),
+          ),
+        ),
+      ],
       child: const App(),
     ),
   );
+}
+
+/// Insere as 5 categorias padrão se o banco estiver vazio.
+Future<void> _seedDefaultCategories() async {
+  final repo = getIt<CategoryRepository>();
+  final existing = await repo.getCategories();
+  if (existing.isNotEmpty) return;
+
+  final create = getIt<CreateCategory>();
+  final defaults = [
+    Category(
+        id: 0,
+        name: AppStrings.categoryWork,
+        color: AppColors.categoryWork.toARGB32()),
+    Category(
+        id: 0,
+        name: AppStrings.categoryStudy,
+        color: AppColors.categoryStudy.toARGB32()),
+    Category(
+        id: 0,
+        name: AppStrings.categoryPersonal,
+        color: AppColors.categoryPersonal.toARGB32()),
+    Category(
+        id: 0,
+        name: AppStrings.categoryShopping,
+        color: AppColors.categoryShopping.toARGB32()),
+    Category(
+        id: 0,
+        name: AppStrings.categoryHealth,
+        color: AppColors.categoryHealth.toARGB32()),
+  ];
+
+  for (final cat in defaults) {
+    await create(cat);
+  }
 }
 
 class App extends StatelessWidget {
@@ -29,119 +105,13 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeController = context.watch<ThemeController>();
 
-    return MaterialApp(
+    return MaterialApp.router(
       title: AppStrings.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: themeController.themeMode,
-      // Placeholder — será substituído pelo GoRouter na etapa de rotas
-      home: const _ThemePreviewScreen(),
-    );
-  }
-}
-
-/// Tela temporária para validar o tema antes de configurar as rotas.
-class _ThemePreviewScreen extends StatelessWidget {
-  const _ThemePreviewScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    final themeController = context.watch<ThemeController>();
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppStrings.appName),
-        actions: [
-          IconButton(
-            tooltip: 'Alternar tema',
-            icon: Icon(
-              themeController.isDark
-                  ? Icons.light_mode_outlined
-                  : Icons.dark_mode_outlined,
-            ),
-            onPressed: themeController.toggleTheme,
-          ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text(
-            'Tema configurado com sucesso',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Material Design 3 ativo. Use o botão no canto superior direito '
-            'para alternar entre claro e escuro.',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 24),
-          _ColorRow(label: 'Primary', color: colorScheme.primary),
-          _ColorRow(label: 'Secondary', color: colorScheme.secondary),
-          _ColorRow(label: 'Tertiary', color: colorScheme.tertiary),
-          _ColorRow(label: 'Surface', color: colorScheme.surface),
-          _ColorRow(label: 'Error', color: colorScheme.error),
-          const SizedBox(height: 24),
-          FilledButton(onPressed: () {}, child: const Text('FilledButton')),
-          const SizedBox(height: 8),
-          OutlinedButton(
-            onPressed: () {},
-            child: const Text('OutlinedButton'),
-          ),
-          const SizedBox(height: 8),
-          const TextField(
-            decoration: InputDecoration(
-              labelText: 'TextField de exemplo',
-              hintText: 'Digite algo...',
-            ),
-          ),
-          const SizedBox(height: 8),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.task_alt),
-              title: const Text('Card de tarefa'),
-              subtitle: const Text('Categoria · Alta prioridade'),
-              trailing: Checkbox(value: false, onChanged: (_) {}),
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        tooltip: 'Nova tarefa',
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
-}
-
-class _ColorRow extends StatelessWidget {
-  const _ColorRow({required this.label, required this.color});
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(6),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Text(label, style: Theme.of(context).textTheme.bodyMedium),
-        ],
-      ),
+      routerConfig: AppRouter.router,
     );
   }
 }
