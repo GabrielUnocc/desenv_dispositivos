@@ -1,5 +1,6 @@
 import 'package:go_router/go_router.dart';
 
+import '../../features/tasks/presentation/pages/dashboard_page.dart';
 import '../../features/tasks/presentation/pages/home_page.dart';
 import '../../features/tasks/presentation/pages/settings_page.dart';
 import '../../features/tasks/presentation/pages/task_detail_page.dart';
@@ -34,6 +35,10 @@ class AppRouter {
           final id = int.parse(state.pathParameters['id']!);
           return TaskFormPage(taskId: id);
         },
+      ),
+      GoRoute(
+        path: '/dashboard',
+        builder: (context, state) => const DashboardPage(),
       ),
       GoRoute(
         path: '/settings',

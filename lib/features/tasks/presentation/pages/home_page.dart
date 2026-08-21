@@ -22,6 +22,11 @@ class HomePage extends StatelessWidget {
         title: const Text(AppStrings.screenHome),
         actions: [
           IconButton(
+            icon: const Icon(Icons.bar_chart_rounded),
+            tooltip: 'Dashboard',
+            onPressed: () => context.push('/dashboard'),
+          ),
+          IconButton(
             icon: const Icon(Icons.settings_outlined),
             tooltip: 'Configurações',
             onPressed: () => context.push('/settings'),
