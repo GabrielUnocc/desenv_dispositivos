@@ -11,6 +11,6 @@ import 'package:gerenciador_tarefas/main.dart';
 void main() {
   testWidgets('App smoke test', (WidgetTester tester) async {
     await tester.pumpWidget(const App());
-    expect(find.text('Etapa 4 — provider configurado'), findsOneWidget);
+    expect(find.text('Minhas Tarefas'), findsOneWidget);
   });
 }

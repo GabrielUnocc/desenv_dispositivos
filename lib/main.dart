@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'data/database/app_database.dart';
 import 'data/repositories/task_repository_impl.dart';
 import 'presentation/providers/task_provider.dart';
+import 'presentation/screens/home_screen.dart';
 
 void main() {
   final db = AppDatabase();
@@ -29,9 +30,7 @@ class App extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
         useMaterial3: true,
       ),
-      home: const Scaffold(
-        body: Center(child: Text('Etapa 4 — provider configurado')),
-      ),
+      home: const HomeScreen(),
     );
   }
 }
