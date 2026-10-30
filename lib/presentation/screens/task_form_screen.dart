@@ -136,6 +136,8 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
     setState(() => _saving = true);
 
     final provider = context.read<TaskProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
     final title = _titleController.text.trim();
     final description = _descriptionController.text.trim();
 
@@ -148,6 +150,9 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
           priority: _priority,
         ),
       );
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Tarefa atualizada!')),
+      );
     } else {
       await provider.createTask(
         Task(
@@ -158,9 +163,12 @@ class _TaskFormScreenState extends State<TaskFormScreen> {
           createdAt: DateTime.now(),
         ),
       );
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Tarefa criada!')),
+      );
     }
 
-    if (mounted) Navigator.pop(context);
+    navigator.pop();
   }
 }
 

@@ -63,6 +63,9 @@ class TaskCard extends StatelessWidget {
   }
 
   void _confirmDelete(BuildContext context, TaskProvider provider) {
+    // salva referência antes do gap assíncrono do showDialog
+    final messenger = ScaffoldMessenger.of(context);
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -77,6 +80,9 @@ class TaskCard extends StatelessWidget {
             onPressed: () {
               Navigator.pop(ctx);
               provider.deleteTask(task.id!);
+              messenger.showSnackBar(
+                const SnackBar(content: Text('Tarefa excluída')),
+              );
             },
             child: const Text('Excluir'),
           ),

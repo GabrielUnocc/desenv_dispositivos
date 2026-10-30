@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../domain/entities/task.dart';
 import '../providers/task_provider.dart';
+import '../providers/theme_provider.dart';
 import '../widgets/task_card.dart';
 import 'task_form_screen.dart';
 
@@ -25,6 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<TaskProvider>();
+    final themeProvider = context.watch<ThemeProvider>();
 
     return Scaffold(
       appBar: AppBar(
@@ -39,6 +41,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 _searchController.clear();
               },
             ),
+          IconButton(
+            icon: Icon(
+              themeProvider.isDark ? Icons.light_mode : Icons.dark_mode,
+            ),
+            tooltip: themeProvider.isDark ? 'Tema claro' : 'Tema escuro',
+            onPressed: themeProvider.toggle,
+          ),
         ],
       ),
       body: Column(
