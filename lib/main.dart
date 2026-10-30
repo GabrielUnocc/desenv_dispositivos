@@ -1,7 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import 'data/database/app_database.dart';
+import 'data/repositories/task_repository_impl.dart';
+import 'presentation/providers/task_provider.dart';
 
 void main() {
-  runApp(const App());
+  final db = AppDatabase();
+  final repository = TaskRepositoryImpl(db.taskDao);
+
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => TaskProvider(repository)..loadTasks(),
+      child: const App(),
+    ),
+  );
 }
 
 class App extends StatelessWidget {
@@ -17,7 +30,7 @@ class App extends StatelessWidget {
         useMaterial3: true,
       ),
       home: const Scaffold(
-        body: Center(child: Text('Etapa 1 — estrutura criada')),
+        body: Center(child: Text('Etapa 4 — provider configurado')),
       ),
     );
   }
